@@ -1,0 +1,17 @@
+# Compatibility baseline validated on Linux with Python 3.12.14.
+# Historical notebook package versions are unknown.
+-c docs/environment-freeze.txt
+scanpy==1.11.5
+anndata==0.12.3
+numpy==2.2.6
+scipy==1.15.3
+pandas==2.2.3
+matplotlib==3.10.7
+seaborn==0.13.2
+scikit-learn==1.7.2
+igraph==0.11.9
+scikit-image==0.25.2
+h5py==3.15.1
+jupyterlab==4.4.10
+nbconvert==7.16.6
+ipykernel==6.30.1

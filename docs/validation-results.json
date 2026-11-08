@@ -1,0 +1,481 @@
+{
+  "validation_date": "2026-11-08",
+  "source_commit": "534bff5529fb8bbacd40f550a8db52cfd0e8aa0c",
+  "original_notebook_sha256": "47a38d879454ab5a21f7e7308119eea153d5d29a30ac9470469b0ea5f70f35b0",
+  "full_reproduction_completed": false,
+  "native_jupyter_completed": false,
+  "full_data": {
+    "status": "exit_137_during_scrublet",
+    "last_completed_one_based_cell": 30,
+    "failed_one_based_cell": 34,
+    "loaded_shape": [
+      16934,
+      36601
+    ],
+    "general_qc_outliers": 869,
+    "mitochondrial_qc_outliers": 1694,
+    "post_qc_shape": [
+      14814,
+      36601
+    ],
+    "post_minimum_filters_shape": [
+      14813,
+      28471
+    ],
+    "historical_checkpoints_match": true,
+    "completed_cells": [
+      {
+        "cell": 8,
+        "seconds": 2.819,
+        "error": null
+      },
+      {
+        "cell": 9,
+        "seconds": 7.361,
+        "error": null
+      },
+      {
+        "cell": 11,
+        "seconds": 0.005,
+        "error": null
+      },
+      {
+        "cell": 15,
+        "seconds": 0.025,
+        "error": null
+      },
+      {
+        "cell": 17,
+        "seconds": 28.712,
+        "error": null
+      },
+      {
+        "cell": 19,
+        "seconds": 2.413,
+        "error": null
+      },
+      {
+        "cell": 21,
+        "seconds": 0.003,
+        "error": null
+      },
+      {
+        "cell": 23,
+        "seconds": 0.019,
+        "error": null
+      },
+      {
+        "cell": 25,
+        "seconds": 0.006,
+        "error": null
+      },
+      {
+        "cell": 27,
+        "seconds": 0.818,
+        "error": null
+      },
+      {
+        "cell": 28,
+        "seconds": 2.114,
+        "error": null
+      },
+      {
+        "cell": 30,
+        "seconds": 2.105,
+        "error": null
+      }
+    ]
+  },
+  "reduced_real_data_smoke": {
+    "input_barcodes": 2000,
+    "sampling_seed": 0,
+    "selection": "sort(default_rng(0).choice(16934,2000,replace=False))",
+    "execution": "in-process IPython, original code-cell sources, reduced reader return",
+    "all_36_nonempty_cells_completed": true,
+    "summary": {
+      "shape": [
+        1747,
+        19965
+      ],
+      "highly_variable_genes": 2000,
+      "pca_shape": [
+        1747,
+        50
+      ],
+      "umap_shape": [
+        1747,
+        2
+      ],
+      "predicted_doublets_retained": 1,
+      "clusters": {
+        "leiden": {
+          "0": 313,
+          "1": 516,
+          "2": 70,
+          "3": 193,
+          "4": 107,
+          "5": 97,
+          "6": 114,
+          "7": 221,
+          "8": 116
+        },
+        "leiden_res_0.02": {
+          "0": 1747
+        },
+        "leiden_res_0.50": {
+          "0": 410,
+          "1": 173,
+          "2": 115,
+          "3": 527,
+          "4": 413,
+          "5": 109
+        },
+        "leiden_res_1.00": {
+          "0": 315,
+          "1": 90,
+          "2": 518,
+          "3": 67,
+          "4": 197,
+          "5": 112,
+          "6": 111,
+          "7": 221,
+          "8": 116
+        }
+      },
+      "unmapped_celltypes": 0,
+      "cluster_2_top10": [
+        "NAMPT",
+        "PLXDC2",
+        "VCAN",
+        "LRMDA",
+        "QKI",
+        "FOS",
+        "ANXA1",
+        "SAT1",
+        "ARHGAP26",
+        "SLC8A1"
+      ],
+      "elapsed_seconds": 60.20665717124939,
+      "max_rss_mib": 2130.9140625,
+      "versions": {
+        "scanpy": "1.11.5",
+        "anndata": "0.12.3",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pandas": "2.2.3",
+        "matplotlib": "3.10.7",
+        "seaborn": "0.13.2",
+        "scikit-learn": "1.7.2",
+        "igraph": "0.11.9",
+        "scikit-image": "0.25.2",
+        "numba": "0.68.1",
+        "umap-learn": "0.5.12",
+        "h5py": "3.15.1"
+      }
+    },
+    "cells": [
+      {
+        "cell": 8,
+        "seconds": 0.101,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 9,
+        "seconds": 6.97,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 11,
+        "seconds": 0.009,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 15,
+        "seconds": 0.043,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 17,
+        "seconds": 0.669,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 19,
+        "seconds": 1.25,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ],
+          [
+            "text/plain",
+            "image/png"
+          ],
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 21,
+        "seconds": 0.001,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 23,
+        "seconds": 0.007,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 25,
+        "seconds": 0.005,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 27,
+        "seconds": 0.019,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 28,
+        "seconds": 0.724,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ],
+          [
+            "text/plain",
+            "image/png"
+          ],
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 30,
+        "seconds": 0.063,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 34,
+        "seconds": 2.524,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 35,
+        "seconds": 0.831,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 37,
+        "seconds": 0.029,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 39,
+        "seconds": 0.093,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 40,
+        "seconds": 0.479,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 42,
+        "seconds": 0.162,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 45,
+        "seconds": 0.167,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 47,
+        "seconds": 0.554,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 49,
+        "seconds": 25.787,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 51,
+        "seconds": 3.234,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 52,
+        "seconds": 0.075,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 54,
+        "seconds": 0.172,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 55,
+        "seconds": 0.303,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 57,
+        "seconds": 0.556,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 58,
+        "seconds": 0.757,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 59,
+        "seconds": 0.157,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 60,
+        "seconds": 0.27,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 62,
+        "seconds": 11.635,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 64,
+        "seconds": 0.583,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 65,
+        "seconds": 0.034,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 66,
+        "seconds": 1.763,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      },
+      {
+        "cell": 68,
+        "seconds": 0.028,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 71,
+        "seconds": 0.004,
+        "error": null,
+        "display_mime_types": []
+      },
+      {
+        "cell": 72,
+        "seconds": 0.096,
+        "error": null,
+        "display_mime_types": [
+          [
+            "text/plain",
+            "image/png"
+          ]
+        ]
+      }
+    ]
+  }
+}

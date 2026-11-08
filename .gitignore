@@ -1,0 +1,25 @@
+# Local Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
+
+# Downloaded data and generated analysis objects
+*.h5
+*.h5ad
+*.loom
+*.zarr/
+/data/*
+!/data/README.md
+/results/
+/outputs/
+*.executed.ipynb
+
+# Machine-specific configuration
+.env
+.env.*

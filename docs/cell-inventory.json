@@ -1,0 +1,838 @@
+[
+  {
+    "cell": 1,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "0e154e64821391fd9e0638a6619c5e489ca0c9153a3ebc6898ff45b5226e2538",
+    "source_summary": "# **Basic Single-Cell RNA-seq Analysis with Scanpy**\nIn this notebook, we\u2019ll go through the first steps of single-cell RNA-seq data analysis. Our main reference is [Single-cell best practices](https://www.sc-best-practices.org/preamble.html), and you can alway",
+    "outputs": []
+  },
+  {
+    "cell": 2,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "9523a873fe323fdd9afecaebcdd3cd77db58a84288c7fce9e9f2a6031c69644e",
+    "source_summary": "# **1. Anndata**\nAnndata is a Python package designed for efficiently handling annotated data matrices, both in memory and on disk([Virshup,2021](https://www.biorxiv.org/content/10.1101/2021.12.16.473007v1.full)).\n\nKey features include:\n* Sparse data support\n*",
+    "outputs": []
+  },
+  {
+    "cell": 3,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "3d5cd2183393b9b294762292e49840add25162ae4d9a063fa8b804136ec549f4",
+    "source_summary": "# **1.3 AnnData provides broad interoperability with tools and platforms**\nAnnData acts as a universal hub, facilitating the seamless flow of data from various external file formats (such as .csv, .tsv, .loom, and CellRanger output) into a structured in-memory",
+    "outputs": []
+  },
+  {
+    "cell": 4,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "45c6811e8349e4b698c2a2b3ba6d8c564c9223f400287155715a5c31eb6ac3ad",
+    "source_summary": "# **2. Scanpy**\nscanpy is a Python package which builds on top of AnnData to facilitate the analysis of single-cell gene expression data. Several methods for preprocessing, embedding, visualization, clustering, differential gene expression testing, pseudotime ",
+    "outputs": []
+  },
+  {
+    "cell": 5,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "20fe2555bd67dc9176ce3f344b51e259088d0a132cdb15c837b16ea3ee1032b5",
+    "source_summary": "# **2.1 Scanpy API design**\nThe scanpy framework is designed in a way that functions belonging to the same step are grouped in corresponding modules. For example, all preprocessing functions are available in the `scanpy.preprocessing` module, all transformatio",
+    "outputs": []
+  },
+  {
+    "cell": 6,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "6b1da2c0085e1e9b4cd13675451f6e43bf605becb9b89d8c0bf6d5f8a6d36a24",
+    "source_summary": "# **3 Quality Control**\nSingle-cell RNA-seq datasets have two important properties that one should have in mind when performing an analysis. Firstly, scRNA-seq data is drop-out meaning that there is an excessive number of zeros in the data due to limiting mRNA",
+    "outputs": []
+  },
+  {
+    "cell": 7,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "de6cf6fba337d5728c7970a2e8e2e9e5b9f561ce83b4afaeeea815f34ad36c35",
+    "source_summary": "# **3.1 Environment Setup and Data**\nWe use a 10x Multiome data set generated for a single-cell data integration challenge at the NeurIPS conference 2021 [[Luecken et al., 2021](https://openreview.net/forum?id=gN35BGa1Rt)]. This dataset captures single-cell mu",
+    "outputs": []
+  },
+  {
+    "cell": 8,
+    "type": "code",
+    "execution_count": 1,
+    "source_sha256": "0f0b502359d4546566247364749a95c07f2d66c740c8fd6a8cbf13a5c8e376c6",
+    "source_summary": "import numpy as np\nimport scanpy as sc\nimport seaborn as sns\nfrom scipy.stats import median_abs_deviation\n\nsc.settings.verbosity = 0\nsc.set_figure_params(\n    dpi=80,\n    facecolor=\"white\",\n    frameon=False,\n)",
+    "outputs": []
+  },
+  {
+    "cell": 9,
+    "type": "code",
+    "execution_count": 2,
+    "source_sha256": "90ddb33c288bef00a6412c758c8307be2e3cd96da4641673edee8f5bbe5175de",
+    "source_summary": "adata = sc.read_10x_h5(\n    filename=\"filtered_feature_bc_matrix.h5\",\n    backup_url=\"https://figshare.com/ndownloader/files/39546196\",\n)\nadata",
+    "outputs": [
+      {
+        "type": "stream",
+        "mime_types": [],
+        "text_preview": "/home/aneghabi/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1758: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.\n  utils.warn_names_duplicates(\"var\")\n/home/aneghabi/.local/lib/python3.1"
+      },
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/plain"
+        ],
+        "text_preview": "AnnData object with n_obs \u00d7 n_vars = 16934 \u00d7 36601\n    var: 'gene_ids', 'feature_types', 'genome', 'interval'"
+      }
+    ]
+  },
+  {
+    "cell": 10,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "805470f4aebb37f6f84ceeccc745ab47944b51e0ff550384df9299f89596799c",
+    "source_summary": "After reading the data, scanpy displays a warning that not all variable names are unique. This indicates that some variables (=genes) appear more than once which can lead to errors or unintended behavior for downstream analysis tasks. We execute the proposed f",
+    "outputs": []
+  },
+  {
+    "cell": 11,
+    "type": "code",
+    "execution_count": 3,
+    "source_sha256": "8cacd560e5e11ba66eb1bc4ef6cab42e8fec3dca3770f58beac1fda2b67e1d7c",
+    "source_summary": "adata.var_names_make_unique()\nadata",
+    "outputs": [
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/plain"
+        ],
+        "text_preview": "AnnData object with n_obs \u00d7 n_vars = 16934 \u00d7 36601\n    var: 'gene_ids', 'feature_types', 'genome', 'interval'"
+      }
+    ]
+  },
+  {
+    "cell": 12,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "64247263b92516703a23dec5c02cf62cd9a2ac9397c5b3c691807c44d339f9a1",
+    "source_summary": "The dataset has the shape `n_obs` 16,934 x `n_vars` 36,601. This translates into `barcodes x number of transcripts`. We additionally inspect further information in `.var` in terms of gene_ids (Ensembl Id), feature_types and genome.",
+    "outputs": []
+  },
+  {
+    "cell": 13,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "3699d999a6d4e77642297daf3f8ffa533c75f73a77e0f18094591e141350d860",
+    "source_summary": "# **3.2  Filtering Low Quality Cells**\nQuality control (QC) begins by removing low-quality cells, which typically show low total counts, few detected genes, and a high fraction of mitochondrial reads, often indicating damaged or dying cells. QC thresholds are ",
+    "outputs": []
+  },
+  {
+    "cell": 14,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "f3f66b17131099620adce3d9e65ab13c6f519ef84111898827c7597d8517ea3a",
+    "source_summary": "In QC, the first step is to calculate the QC covariates or metric. We compute these using the scanpy function sc.pp.calculate_qc_metrics, which can also calculate the proportions of counts for specific gene populations. We therefore define mitochondrial, ribos",
+    "outputs": []
+  },
+  {
+    "cell": 15,
+    "type": "code",
+    "execution_count": 4,
+    "source_sha256": "cbe98de71ac9be58077c0632570aaa772431ad61291e1fce996b091baa458a31",
+    "source_summary": "# mitochondrial genes\nadata.var[\"mt\"] = adata.var_names.str.startswith(\"MT-\")\n# ribosomal genes\nadata.var[\"ribo\"] = adata.var_names.str.startswith((\"RPS\", \"RPL\"))\n# hemoglobin genes.\nadata.var[\"hb\"] = adata.var_names.str.contains(\"^HB[^(P)]\")",
+    "outputs": []
+  },
+  {
+    "cell": 16,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "7ccdea5847685174313d3b5d3945c814985db4a147534855198acbdff88db3e5",
+    "source_summary": "We can now calculate the respective QC metrics with scanpy.",
+    "outputs": []
+  },
+  {
+    "cell": 17,
+    "type": "code",
+    "execution_count": 5,
+    "source_sha256": "fa84eaedc9f84286d7d62676ac78a69d0a976885f7978c56f7a55c319e10895e",
+    "source_summary": "sc.pp.calculate_qc_metrics(\n    adata, qc_vars=[\"mt\", \"ribo\", \"hb\"], inplace=True, percent_top=[20], log1p=True\n)\nadata",
+    "outputs": [
+      {
+        "type": "stream",
+        "mime_types": [],
+        "text_preview": "/home/aneghabi/.local/lib/python3.10/site-packages/numba/np/ufunc/parallel.py:371: NumbaWarning: The TBB threading layer requires TBB version 2021 update 6 or later i.e., TBB_INTERFACE_VERSION >= 12060. Found TBB_INTERFACE_VERSION = 12050. The TBB th"
+      },
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/plain"
+        ],
+        "text_preview": "AnnData object with n_obs \u00d7 n_vars = 16934 \u00d7 36601\n    obs: 'n_genes_by_counts', 'log1p_n_genes_by_counts', 'total_counts', 'log1p_total_counts', 'pct_counts_in_top_20_genes', 'total_counts_mt', 'log1p_total_counts_mt', 'pct_counts_mt', 'total_counts"
+      }
+    ]
+  },
+  {
+    "cell": 18,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "aa9ec7962a7cfa148bb67b7098ed9a633d40003d0a8c626c0e807fef1d6c28c7",
+    "source_summary": "As we can see, the function added a couple of additional columns to .var and .obs. We want to highlight a few of them here, more information on the different metrics can be found in the scanpy documentation:\n\n- `n_genes_by_counts` is the number of genes with p",
+    "outputs": []
+  },
+  {
+    "cell": 19,
+    "type": "code",
+    "execution_count": 6,
+    "source_sha256": "0b53957006161e111c86c26c40f55feb298ec508589bad1f6171718a1504883e",
+    "source_summary": "p1 = sns.displot(adata.obs[\"total_counts\"], bins=100, kde=False)\n# sc.pl.violin(adata, 'total_counts')\np2 = sc.pl.violin(adata, \"pct_counts_mt\")\np3 = sc.pl.scatter(adata, \"total_counts\", \"n_genes_by_counts\", color=\"pct_counts_mt\")",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 400x400 with 1 Axes>"
+      },
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 372.24x320 with 1 Axes>"
+      },
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 361x320 with 2 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 20,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "72e564fd0e37e0fbab977a577a9f5d30429f33ad894db00a3ede9de27dd52d96",
+    "source_summary": "The plots indicate that some cells have a relatively high percentage of mitochondrial counts which are often associated with cell degradation. But since number of counts per cell is sufficiently high and percentage of mitochondrial reads is for most cells belo",
+    "outputs": []
+  },
+  {
+    "cell": 21,
+    "type": "code",
+    "execution_count": 7,
+    "source_sha256": "fae900e95d17abd20259f782d7009e1c452c27c8a9d9591e247464e5b00944d9",
+    "source_summary": "def is_outlier(adata, metric: str, nmads: int):\n    M = adata.obs[metric]\n    outlier = (M < np.median(M) - nmads * median_abs_deviation(M)) | (\n        np.median(M) + nmads * median_abs_deviation(M) < M\n    )\n    return outlier",
+    "outputs": []
+  },
+  {
+    "cell": 22,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "5eda7f20d3c8469d52861b792df0576a89bcc0115ffdeccbfa99c6974365ada0",
+    "source_summary": "We now apply this function to the `log1p_total_counts`, `log1p_n_genes_by_counts` and `pct_counts_in_top_20_genes` QC covariates each with a threshold of 5 MADs.",
+    "outputs": []
+  },
+  {
+    "cell": 23,
+    "type": "code",
+    "execution_count": 8,
+    "source_sha256": "a66cc02efb049cf27d875c9fb4c63f543318f5d15abf3c9ac2539b1f692ec572",
+    "source_summary": "adata.obs[\"outlier\"] = (\n    is_outlier(adata, \"log1p_total_counts\", 5)\n    | is_outlier(adata, \"log1p_n_genes_by_counts\", 5)\n    | is_outlier(adata, \"pct_counts_in_top_20_genes\", 5)\n)\nadata.obs.outlier.value_counts()",
+    "outputs": [
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/plain"
+        ],
+        "text_preview": "outlier\nFalse    16065\nTrue       869\nName: count, dtype: int64"
+      }
+    ]
+  },
+  {
+    "cell": 24,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "e8b33b16375cf9ec15e467b8c7116166bd18ba8e37000b2c35bedb256bffd42a",
+    "source_summary": "`pct_counts_Mt` is filtered with 3 MADs. Additionally, cells with a percentage of mitochondrial counts exceeding 8 % are filtered out.",
+    "outputs": []
+  },
+  {
+    "cell": 25,
+    "type": "code",
+    "execution_count": 9,
+    "source_sha256": "cc98275be7832f5cce92d2a2781b864078122e8a2efba8f861a4b3c7ff590eee",
+    "source_summary": "adata.obs[\"mt_outlier\"] = is_outlier(adata, \"pct_counts_mt\", 3) | (\n    adata.obs[\"pct_counts_mt\"] > 8\n)\nadata.obs.mt_outlier.value_counts()",
+    "outputs": [
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/plain"
+        ],
+        "text_preview": "mt_outlier\nFalse    15240\nTrue      1694\nName: count, dtype: int64"
+      }
+    ]
+  },
+  {
+    "cell": 26,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "a716b389e01cd9f06599f92e047afe9ac55ca3c5ac564f73a9e33429b40a558f",
+    "source_summary": "We now filter our AnnData object based on these two additional columns.",
+    "outputs": []
+  },
+  {
+    "cell": 27,
+    "type": "code",
+    "execution_count": 10,
+    "source_sha256": "7081c2f21d259b11c939fe6caecc75b5ce059d4d80bbf34bbf128e768875dc43",
+    "source_summary": "print(f\"Total number of cells: {adata.n_obs}\")\nadata = adata[(~adata.obs.outlier) & (~adata.obs.mt_outlier)].copy()\n\nprint(f\"Number of cells after filtering of low quality cells: {adata.n_obs}\")",
+    "outputs": [
+      {
+        "type": "stream",
+        "mime_types": [],
+        "text_preview": "Total number of cells: 16934\nNumber of cells after filtering of low quality cells: 14814\n"
+      }
+    ]
+  },
+  {
+    "cell": 28,
+    "type": "code",
+    "execution_count": 11,
+    "source_sha256": "6c00a236f161ec6c64d71a775996ab2dcb4d342171573859a2eb24e945d650cc",
+    "source_summary": "p1 = sns.displot(adata.obs[\"total_counts\"], bins=100, kde=False)\n# sc.pl.violin(adata, 'total_counts')\np2 = sc.pl.violin(adata, \"pct_counts_mt\")\np3 = sc.pl.scatter(adata, \"total_counts\", \"n_genes_by_counts\", color=\"pct_counts_mt\")\nadata",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 400x400 with 1 Axes>"
+      },
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 372.24x320 with 1 Axes>"
+      },
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 361x320 with 2 Axes>"
+      },
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/plain"
+        ],
+        "text_preview": "AnnData object with n_obs \u00d7 n_vars = 14814 \u00d7 36601\n    obs: 'n_genes_by_counts', 'log1p_n_genes_by_counts', 'total_counts', 'log1p_total_counts', 'pct_counts_in_top_20_genes', 'total_counts_mt', 'log1p_total_counts_mt', 'pct_counts_mt', 'total_counts"
+      }
+    ]
+  },
+  {
+    "cell": 29,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "a9934251e8534d9b342c689cc77a878e3b6eccf5f136bef881d636bba65d5a2f",
+    "source_summary": "From these distributions you choose gentle thresholds that remove only the most obvious low quality cells and uninformative genes, for example cells with very few detected genes or extremely low or high total counts, and genes that are not expressed in any or ",
+    "outputs": []
+  },
+  {
+    "cell": 30,
+    "type": "code",
+    "execution_count": 12,
+    "source_sha256": "c56bb2b345f9696c62a20ae449a60ce8938e0607336466785decdc0be08ced47",
+    "source_summary": "sc.pp.filter_cells(adata, min_genes=100)\nsc.pp.filter_genes(adata, min_cells=3)\nadata",
+    "outputs": [
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/plain"
+        ],
+        "text_preview": "AnnData object with n_obs \u00d7 n_vars = 14813 \u00d7 28471\n    obs: 'n_genes_by_counts', 'log1p_n_genes_by_counts', 'total_counts', 'log1p_total_counts', 'pct_counts_in_top_20_genes', 'total_counts_mt', 'log1p_total_counts_mt', 'pct_counts_mt', 'total_counts"
+      }
+    ]
+  },
+  {
+    "cell": 31,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "c547aae43ac88141b8cf3962a0d53da897497d4e79bfaaee808bd646d76c1e47",
+    "source_summary": "\n\nCells with fewer than 100 detected genes were removed from the dataset.\nGenes that were expressed in fewer than three cells were also excluded.\n",
+    "outputs": []
+  },
+  {
+    "cell": 32,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "d88570e2a86d892e5a565d7efb394005a50c4c5b474235b592b1f79733f0c6b8",
+    "source_summary": "# **3.3 Doublet Detection**\nDoublets arise when two cells are captured under the same barcode (for example in the same droplet). Doublets formed from the same cell type are called homotypic and are often difficult to detect from the count matrix alone, so they",
+    "outputs": []
+  },
+  {
+    "cell": 33,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "714c03397557a2d4e2189ca2885852eed00ab6181279c3889c15678f996bb23f",
+    "source_summary": "In this analysis we use Scrublet, which predicts doublets by simulating artificial doublets and applying a nearest-neighbor classifier to compare these with the observed transcriptomes. The Scanpy function scanpy.pp.scrublet() adds a doublet_score and a predic",
+    "outputs": []
+  },
+  {
+    "cell": 34,
+    "type": "code",
+    "execution_count": 13,
+    "source_sha256": "f11ea7285c0d4fa8c210f8f75c70ab5c949e812d7aada30f2141fc67cc083f00",
+    "source_summary": "sc.pp.scrublet(adata)",
+    "outputs": []
+  },
+  {
+    "cell": 35,
+    "type": "code",
+    "execution_count": 14,
+    "source_sha256": "220c4cf3f7af3232606d96d873ffcf2de18cde220e69def53e0237a932011c83",
+    "source_summary": "sc.pl.scrublet_score_distribution(adata)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 640x240 with 2 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 36,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "72dfc3b9fabb48c9c8015afe3bb82e588f1f8baeda9ce3e8f046651f0dfbc2c6",
+    "source_summary": "# **4. Normalizaton**\nThe next preprocessing step is normalization. A common approach is count depth scaling with subsequent log plus one (log1p) transformation. Count depth scaling normalizes the data to a \u201csize factor\u201d such as the median count depth in the d",
+    "outputs": []
+  },
+  {
+    "cell": 37,
+    "type": "code",
+    "execution_count": 15,
+    "source_sha256": "33e49e528f1e0a6ca367711118809b1940de41eb4bda8f6fe5f05cf3d184b720",
+    "source_summary": "# Saving count data\nadata.layers[\"counts\"] = adata.X.copy()\n# Normalizing to median total counts\nsc.pp.normalize_total(adata)\n# Logarithmize the data\nsc.pp.log1p(adata)",
+    "outputs": []
+  },
+  {
+    "cell": 38,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "a49600b4e60da208ff2d9f83be27515e4defc95ad7deef908bbc3cf2da7ed892",
+    "source_summary": "# **5. Feature Selection**\nAs a next step, we want to reduce the dimensionality of the dataset and only include the most informative genes. This step is commonly known as feature selection.",
+    "outputs": []
+  },
+  {
+    "cell": 39,
+    "type": "code",
+    "execution_count": 16,
+    "source_sha256": "c21c502c73dff2db614fedf7446e98d784c8bed0206ea9b14dbdbc6717e58ffb",
+    "source_summary": "sc.pp.highly_variable_genes(adata, n_top_genes=2000)",
+    "outputs": []
+  },
+  {
+    "cell": 40,
+    "type": "code",
+    "execution_count": 17,
+    "source_sha256": "47e4972c7898b6e56025303a543cbfb4b9f297bc2a5b568fa4c06cd8408bde02",
+    "source_summary": "sc.pl.highly_variable_genes(adata)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 640x320 with 2 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 41,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "20941b1f75cc1292d8ee9ef694fff1e243b1d9c46adb4c00f86317a4fc7a9ec3",
+    "source_summary": "# **6. Dimensionality Reduction**\nReduce the dimensionality of the data by running principal component analysis (PCA), which reveals the main axes of variation and denoises the data.",
+    "outputs": []
+  },
+  {
+    "cell": 42,
+    "type": "code",
+    "execution_count": 18,
+    "source_sha256": "de2adce1509a305765db511b82505e2a57387ffd42bff1778eefc6d0f831ebeb",
+    "source_summary": "sc.tl.pca(adata)",
+    "outputs": []
+  },
+  {
+    "cell": 43,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "86652274cb7ca1e82ba571a670f173342d3b4cab7a5c1556285e09c3f88e530b",
+    "source_summary": "Let us inspect the contribution of single PCs to the total variance in the data. This gives us information about how many PCs we should consider in order to compute the neighborhood relations of cells, e.g. used in the clustering function leiden() or tsne(). I",
+    "outputs": []
+  },
+  {
+    "cell": 44,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "1174af8680aafe445c9143fbd6240e586f01dc4f67c4c3e6a282454b0d4bafa5",
+    "source_summary": "Let us inspect the contribution of single PCs to the total variance in the data. This gives us information about how many PCs we should consider in order to compute the neighborhood relations of cells, e.g. used in the clustering function `leiden()` or `tsne()",
+    "outputs": []
+  },
+  {
+    "cell": 45,
+    "type": "code",
+    "execution_count": 19,
+    "source_sha256": "5917fed60bbd50b1cec9a17a404eb098a7a1bb439c568d2b8296e8d0c2b3990e",
+    "source_summary": "sc.pl.pca_variance_ratio(adata, n_pcs=50, log=True)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 320x320 with 1 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 46,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "d513141057a57bafe90071be84698113a32ddcc07069d3d6f6585e55eb888754",
+    "source_summary": "You can also plot the principal components to see if there are any potentially undesired features (e.g. batch, QC metrics) driving signifigant variation in this dataset. In this case, there isn\u2019t anything too alarming, but it\u2019s a good idea to explore this.",
+    "outputs": []
+  },
+  {
+    "cell": 47,
+    "type": "code",
+    "execution_count": 20,
+    "source_sha256": "50f35fedb90aa465014756a4d8e2225c1e059aced71615348986ca6978600e57",
+    "source_summary": "sc.pl.pca(\n    adata,\n    color=[\"pct_counts_mt\", \"pct_counts_mt\"],\n    dimensions=[(0, 1), (2, 3)],\n    ncols=2,\n    size=2,\n)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 772.8x320 with 4 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 48,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "4f900b449c61b29c1294473a96eb154961d70b8846988554511bcb5e5415548c",
+    "source_summary": "# **7. Nearest Neighbor Graph Construction and Visualization**\nLet us compute the neighborhood graph of cells using the PCA representation of the data matrix.",
+    "outputs": []
+  },
+  {
+    "cell": 49,
+    "type": "code",
+    "execution_count": 21,
+    "source_sha256": "8f88b00df8c3da6c4452cb39d697ccf8f841bb268b1839f9236bd4b40d640588",
+    "source_summary": "sc.pp.neighbors(adata)",
+    "outputs": []
+  },
+  {
+    "cell": 50,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "533798b61419ae51bd1881eee7111624f7c06b97e01a36bc4f6ea3f04aee2f49",
+    "source_summary": "This graph can then be embedded in two dimensions for visualiztion with UMAP[[McInnes et al., 2018](https://arxiv.org/abs/1802.03426)]",
+    "outputs": []
+  },
+  {
+    "cell": 51,
+    "type": "code",
+    "execution_count": 22,
+    "source_sha256": "d73addb95c62e6db398fbe32bde39009b018be0c8c1b1a67a195587ff78280e2",
+    "source_summary": "sc.tl.umap(adata)",
+    "outputs": []
+  },
+  {
+    "cell": 52,
+    "type": "code",
+    "execution_count": 23,
+    "source_sha256": "2d22b6ecf925127f817f5936251933f6c225065dd2320eddd50252bfcf560fc1",
+    "source_summary": "sc.pl.umap(adata)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 320x320 with 1 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 53,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "7c4203326157fe24ff77119f332a355c078aad45b4df14a316dc9212e58f0cdf",
+    "source_summary": "# **8. Clustering**\nAs with Seurat and many other frameworks, we recommend the Leiden graph-clustering method (community detection based on optimizing modularity) [[Traag et al., 2019](https://www.nature.com/articles/s41598-019-41695-z)]. Note that Leiden clus",
+    "outputs": []
+  },
+  {
+    "cell": 54,
+    "type": "code",
+    "execution_count": 24,
+    "source_sha256": "4ca557d0489719d921e36c73b24e75f7c45d50019c163704d3828591b89ccbd8",
+    "source_summary": "# Using the igraph implementation and a fixed number of iterations can be significantly faster,\n# especially for larger datasets\nsc.tl.leiden(adata, flavor=\"igraph\", n_iterations=2)",
+    "outputs": []
+  },
+  {
+    "cell": 55,
+    "type": "code",
+    "execution_count": 25,
+    "source_sha256": "8f3848e7eccac6ff9926a2125882dd7af55902fc9c6afaf3e4d58ba518fe0af6",
+    "source_summary": "sc.pl.umap(adata, color=[\"leiden\"])",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 320x320 with 1 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 56,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "22a2b6977b79dbfa4924bd4091bde9d8baf7b5eb39e877041c60d306a69681ac",
+    "source_summary": "# **9. Re-assess quality control and cell filtering**\nAs indicated before, we will now re-assess our filtering strategy by visualizing different QC metrics using UMAP.",
+    "outputs": []
+  },
+  {
+    "cell": 57,
+    "type": "code",
+    "execution_count": 26,
+    "source_sha256": "1938092fe4052240cd7fd2f5d7997be057e7fd2cb4ff9881abf8f70953a1f813",
+    "source_summary": "sc.pl.umap(\n    adata,\n    color=[\"leiden\", \"predicted_doublet\", \"doublet_score\"],\n    # increase horizontal space between panels\n    wspace=0.5,\n    size=3,\n)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 1440x320 with 4 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 58,
+    "type": "code",
+    "execution_count": 27,
+    "source_sha256": "2ab082789480c101481dba92f699a19401490a8745cc267bb4368c4407f9945d",
+    "source_summary": "sc.pl.umap(\n    adata,\n    color=[\"leiden\", \"log1p_total_counts\", \"pct_counts_mt\", \"log1p_n_genes_by_counts\"],\n    wspace=0.5,\n    ncols=2,\n)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 960x640 with 7 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 59,
+    "type": "code",
+    "execution_count": 28,
+    "source_sha256": "c29ee7139439e2d30cf804196bdd74600e7124aabcca2d32f11adb3021f05223",
+    "source_summary": "for res in [0.02, 0.5, 1.0]:\n    sc.tl.leiden(adata, key_added=f\"leiden_res_{res:4.2f}\", resolution=res, flavor=\"igraph\")",
+    "outputs": []
+  },
+  {
+    "cell": 60,
+    "type": "code",
+    "execution_count": 29,
+    "source_sha256": "798c254144c216038e5626a8d5c8110a0d51e8e7ec850d968c02acefc580f8ef",
+    "source_summary": "sc.pl.umap(\n    adata,\n    color=[\"leiden_res_0.02\", \"leiden_res_0.50\", \"leiden_res_1.00\"],\n    legend_loc=\"on data\",\n)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 1159.2x320 with 3 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 61,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "56f5490ed4833a2d9872a47a8b80b72ff2d251f6e841b3055ccc96c3c15b1a85",
+    "source_summary": "# **Differentially-expressed Genes as Markers**\nWE can calculate marker genes per cluster and then look up whether we can link those marker genes to any known biology, such as cell types and/or states. This is typically done using simple statistical tests, suc",
+    "outputs": []
+  },
+  {
+    "cell": 62,
+    "type": "code",
+    "execution_count": 30,
+    "source_sha256": "c4a3f690b9f10eeb1be9b6178902621b6ef6b456cf2f9fb4899100f393b8d5eb",
+    "source_summary": "# Obtain cluster-specific differentially expressed genes\nsc.tl.rank_genes_groups(adata, groupby=\"leiden_res_0.50\", method=\"wilcoxon\")",
+    "outputs": []
+  },
+  {
+    "cell": 63,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "1d3f37586bbb0eba0274d424865da2ee5aae901b6f62ebdc368853e7c6c14370",
+    "source_summary": "We can then visualize the top 10 differentially-expressed genes on a dotplot.",
+    "outputs": []
+  },
+  {
+    "cell": 64,
+    "type": "code",
+    "execution_count": 31,
+    "source_sha256": "034642f36d029c6ee02961b48b116a8e1de089204a10b09ad0730cd8d6bab133",
+    "source_summary": "sc.pl.rank_genes_groups_dotplot(adata, groupby=\"leiden_res_0.50\", standard_scale=\"var\", n_genes=10)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 2256x276 with 6 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 65,
+    "type": "code",
+    "execution_count": 32,
+    "source_sha256": "292324ebf53ed4f784e0a30eab17ba6e0a36bd72023a652be7c39512bdb0415b",
+    "source_summary": "sc.get.rank_genes_groups_df(adata, group=\"2\").head(10)",
+    "outputs": [
+      {
+        "type": "execute_result",
+        "mime_types": [
+          "text/html",
+          "text/plain"
+        ],
+        "text_preview": "      names     scores  logfoldchanges          pvals      pvals_adj\n0      TFRC  43.128525        4.570836   0.000000e+00   0.000000e+00\n1      NFIA  40.831535        4.286628   0.000000e+00   0.000000e+00\n2      ANK1  40.103790        6.407094   0."
+      }
+    ]
+  },
+  {
+    "cell": 66,
+    "type": "code",
+    "execution_count": 33,
+    "source_sha256": "149873962db291bb6775924f66f6b5b668fd3abf4e7ce81199b9ac3102c65ab4",
+    "source_summary": "dc_cluster_genes = sc.get.rank_genes_groups_df(adata, group=\"2\").head(10)[\"names\"]\nsc.pl.umap(\n    adata,\n    color=[*dc_cluster_genes, \"leiden_res_0.50\"],\n    legend_loc=\"on data\",\n    frameon=False,\n    ncols=3,\n)",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 1159.2x1280 with 21 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 67,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "e2d21ed32a06ec743cadd9c91db8f9e07fdc876934537b03ba36b869915b11dc",
+    "source_summary": "Based on marker genes in each cluster, we can identify each cell type.\nHere we are sharing one possible way to annotate each cluster.\n\nStep 1. Get marker genes in each cluster.\n\nStep 2. Find cell type that is highly associated with the provided marker genes vi",
+    "outputs": []
+  },
+  {
+    "cell": 68,
+    "type": "code",
+    "execution_count": 34,
+    "source_sha256": "f10558c830dc731e1173534f5432da96d3788e6d507d9ad381cc390cb689d0eb",
+    "source_summary": "df = sc.get.rank_genes_groups_df(adata, group=\"2\")\n\nnames_str = \", \".join(df[\"names\"].head(10).astype(str).tolist())\n\nprint(names_str)\n",
+    "outputs": [
+      {
+        "type": "stream",
+        "mime_types": [],
+        "text_preview": "TFRC, NFIA, ANK1, SLC25A21, SPTA1, CD36, GNAQ, CDC42BPA, MBOAT2, BMP2K\n"
+      }
+    ]
+  },
+  {
+    "cell": 69,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "c07dd938c77301b8b18e159e652cfa5a8b41bb7cdb21913876b1592546b2f2de",
+    "source_summary": "![enrichr0.png]([embedded image])",
+    "outputs": []
+  },
+  {
+    "cell": 70,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "c4f35ef2cd02e2b37e44747881dfff059e1cd9912f3440dd92c8d2d15e86f098",
+    "source_summary": "![enrichr1.png]([embedded image])",
+    "outputs": []
+  },
+  {
+    "cell": 71,
+    "type": "code",
+    "execution_count": 35,
+    "source_sha256": "fdb543759f5637335bbde76e1378749f1f070a2b84fc1b330dc7522eebc8059b",
+    "source_summary": "cluster_to_name = {\n    \"0\": \"CD8+ T\",\n    \"1\": \"CD4+ T\",\n    \"2\": \"Erythroid\",\n    \"3\": \"B cells\",\n    \"4\": \"B cells\",\n    \"5\": \"Monocytes\",\n    \"6\": \"B cells\",\n}\n\nadata.obs[\"celltype\"] = (\n    adata.obs[\"leiden_res_0.50\"].map(cluster_to_name).astype(\"categor",
+    "outputs": []
+  },
+  {
+    "cell": 72,
+    "type": "code",
+    "execution_count": 36,
+    "source_sha256": "598f6c41e6463df299d5f1947cd69830ccf3ad01936036fc1cb261850731e793",
+    "source_summary": "sc.pl.umap(adata, color=\"celltype\", legend_loc=\"on data\")\n",
+    "outputs": [
+      {
+        "type": "display_data",
+        "mime_types": [
+          "image/png",
+          "text/plain"
+        ],
+        "text_preview": "<Figure size 320x320 with 1 Axes>"
+      }
+    ]
+  },
+  {
+    "cell": 73,
+    "type": "markdown",
+    "execution_count": null,
+    "source_sha256": "cd42294c0e790a422a66a0a20d87df04320cba54766960577a5858315ffb9aad",
+    "source_summary": "You may have noticed that the p-values found here are extremely low. This is due to the statistical test being performed considering each cell as an independent sample. For a more conservative approach you may want to use a more powerful differential expressio",
+    "outputs": []
+  },
+  {
+    "cell": 74,
+    "type": "code",
+    "execution_count": null,
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_summary": "",
+    "outputs": []
+  }
+]
